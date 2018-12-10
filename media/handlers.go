@@ -37,7 +37,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Casting %s", media.Name)
-	if err = chromecast.Play(media.Path); err != nil {
+	if err = chromecast.Play(media.GetPath()); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 

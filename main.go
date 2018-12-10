@@ -3,26 +3,43 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/akamensky/argparse"
 	"github.com/wlwanpan/localcast/media"
 )
 
 func main() {
-	mediaPath := "/Users/warrenwan/Music"
-	log.Printf("Loading localfiles from: %s \n", mediaPath)
-	if err := media.LoadLocalFiles(mediaPath); err != nil {
+	parser := argparse.NewParser("localcast", "Api server for casting local media files.")
+	log.SetOutput(os.Stdout)
+
+	port := parser.String("p", "port", &argparse.Options{
+		Required: false,
+		Default:  "4040",
+		Help:     "Port to run the server.",
+	})
+	mediaSrc := parser.String("s", "source", &argparse.Options{
+		Required: true,
+		Help:     "Path of folder to serve.",
+	})
+
+	if err := parser.Parse(os.Args); err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Loading localfiles from: %s \n", *mediaSrc)
+	if err := media.LoadLocalFiles(*mediaSrc); err != nil {
 		log.Fatal(err)
 	}
 	log.Printf("Sucessfully cached: %d", media.CachedMediaCount())
 
-	port := ":4040"
-	log.Printf("Starting server on %s", port)
 	s := &http.Server{
 		Handler:      media.InitMediaRoutes(),
-		Addr:         port,
+		Addr:         ":" + *port,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
+	log.Printf("Starting server on %s\n", *port)
 	log.Fatal(s.ListenAndServe())
 }

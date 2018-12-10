@@ -15,18 +15,22 @@ var (
 type Media struct {
 	ID   bson.ObjectId `bson:"_id"`
 	Name string        `bson:"name"`
-	Path string        `bson:"path"`
+	path string        `bson:"path"`
 }
 
 func (m *Media) GetID() string {
 	return m.ID.Hex()
 }
 
+func (m *Media) GetPath() string {
+	return m.path
+}
+
 func NewMedia(name string, path string) *Media {
 	return &Media{
 		ID:   bson.NewObjectId(),
 		Name: name,
-		Path: path,
+		path: path,
 	}
 }
 
