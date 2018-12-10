@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	AudioType = iota
-	VideoType
-	UnknownType
+	AudioType   = iota
+	VideoType   = iota
+	UnknownType = iota
 )
 
 type mediaType int
@@ -53,12 +53,12 @@ func GetCachedMedia(mid string) (*Media, error) {
 	return &Media{}, ErrMediaNotFound
 }
 
-func GetAllCachedMedia() []*Media {
-	m := []*Media{}
-	for _, media := range cachedMedia {
-		m = append(m, media)
-	}
-	return m
+func GetCachedAudio() []*Media {
+	return filterCachedMedia(AudioType)
+}
+
+func GetCachedVideo() []*Media {
+	return filterCachedMedia(VideoType)
 }
 
 func LoadLocalFiles(p string) error {
@@ -91,6 +91,16 @@ func CachedMediaCount() int {
 
 func isHidden(filename string) bool {
 	return strings.HasPrefix(filename, ".")
+}
+
+func filterCachedMedia(mt mediaType) []*Media {
+	m := []*Media{}
+	for _, media := range cachedMedia {
+		if media.mediaType == mt {
+			m = append(m, media)
+		}
+	}
+	return m
 }
 
 func readFileType(f string) mediaType {

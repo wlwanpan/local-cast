@@ -30,8 +30,16 @@ func ChromeApp() (*application.Application, error) {
 		return &application.Application{}, err
 	}
 
-	if err := app.Start(entry); err != nil {
+	if err = app.Start(entry); err != nil {
 		return &application.Application{}, err
+	}
+
+	// Check app status does not work.
+	_, castMedia, _ := app.Status()
+	if castMedia != nil {
+		if err = app.Stop(); err != nil {
+			return &application.Application{}, err
+		}
 	}
 	return app, nil
 }

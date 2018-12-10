@@ -9,7 +9,7 @@ Note: The server has to be under the same local network.
 
 - Get list of media in local dir:
 ```bash
-curl localhost:4040/media
+curl localhost:4040/media?type=audio
 ```
 
 Response:
@@ -18,12 +18,10 @@ Response:
   {
     "ID":"5c0dbd824f3d37099f988541",
     "Name":"Running.mp3",
-    "Path":"/Running.mp3"
   },
   {
     "ID":"5c0dbd824f3d37099f988542",
-    "Name":"iTunes",
-    "Path":"/Walking.mp3"
+    "Name":"Walking.mp3",
   }
 ]
 ```

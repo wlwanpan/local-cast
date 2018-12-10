@@ -14,7 +14,13 @@ type Payload struct {
 }
 
 func GetMedia(w http.ResponseWriter, r *http.Request) {
-	cachedMedias := GetAllCachedMedia()
+	mt := r.URL.Query().Get("type")
+	var cachedMedias []*Media
+	if mt == "audio" {
+		cachedMedias = GetCachedAudio()
+	} else {
+		cachedMedias = GetCachedVideo()
+	}
 	payload := &Payload{Data: cachedMedias}
 	parsedPayload, err := json.Marshal(payload)
 	if err != nil {
