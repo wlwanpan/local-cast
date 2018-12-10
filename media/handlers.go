@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/wlwanpan/local-cast/chromecast"
+	"github.com/wlwanpan/localcast/chromecast"
 )
 
 type Payload struct {

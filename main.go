@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/wlwanpan/local-cast/media"
+	"github.com/wlwanpan/localcast/media"
 )
 
 func main() {

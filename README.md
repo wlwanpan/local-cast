@@ -1,4 +1,4 @@
-# Local-cast
+# Localcast
 
 An API server built around [go-chromecast](https://github.com/vishen/go-chromecast) to cast your local media files to
 [Google Home](https://store.google.com/ca/product/google_home) or [Chromecast](https://store.google.com/product/chromecast).
