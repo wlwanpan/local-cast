@@ -43,7 +43,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("Casting %s", media.Name)
-	if err = chromecast.Play(media.GetPath()); err != nil {
+	if err = chromecast.PlayMedia(media.GetPath()); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
@@ -51,7 +51,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 }
 
 func StopMedia(w http.ResponseWriter, r *http.Request) {
-	if err := chromecast.Stop(); err != nil {
+	if err := chromecast.StopMedia(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	w.WriteHeader(http.StatusOK)

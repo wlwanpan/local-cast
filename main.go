@@ -7,8 +7,19 @@ import (
 	"time"
 
 	"github.com/akamensky/argparse"
+	"github.com/gorilla/mux"
+	"github.com/wlwanpan/localcast/chromecast"
+	"github.com/wlwanpan/localcast/common"
+	"github.com/wlwanpan/localcast/device"
 	"github.com/wlwanpan/localcast/media"
 )
+
+func initRoutes() http.Handler {
+	r := mux.NewRouter()
+	r = media.InitRoutes(r)
+	r = device.InitRoutes(r)
+	return common.SetCORS(r)
+}
 
 func main() {
 	parser := argparse.NewParser("localcast", "Api server for casting local media files.")
@@ -34,8 +45,13 @@ func main() {
 	}
 	log.Printf("Sucessfully cached: %d", media.CachedMediaCount())
 
+	log.Printf("Initializing Google Home")
+	if err := chromecast.InitGoogleHomeApp(); err != nil {
+		log.Fatal(err)
+	}
+
 	s := &http.Server{
-		Handler:      media.InitMediaRoutes(),
+		Handler:      initRoutes(),
 		Addr:         ":" + *port,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,

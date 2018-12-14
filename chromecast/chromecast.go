@@ -9,11 +9,11 @@ import (
 )
 
 const (
-	// Chromecast is the local discovery name for chromecast device.
-	Chromecast = "Home TV"
+	// ChromecastName is the local discovery name for chromecast device.
+	ChromecastName = "Home TV"
 
-	// GoogleHome is the local discovery name for google home device.
-	GoogleHome = "Home speaker"
+	// GoogleHomeName is the local discovery name for google home device.
+	GoogleHomeName = "Home speaker"
 )
 
 var (
@@ -22,10 +22,45 @@ var (
 	ErrNoChromecastAvailable = errors.New("no chromecast connected to local network")
 )
 
-func ChromeApp() (*application.Application, error) {
+var (
+	ccApp *application.Application
+	ghApp *application.Application
+)
+
+func InitChromecastApp() error {
+	var err error
+	ccApp, err = initApp(ChromecastName)
+	return err
+}
+
+func RefreshChromecastApp() error {
+	if err := ccApp.Stop(); err != nil {
+		return err
+	}
+	return InitChromecastApp()
+}
+
+func InitGoogleHomeApp() error {
+	var err error
+	ghApp, err = initApp(GoogleHomeName)
+	return err
+}
+
+func RefreshGoogleHomeApp() error {
+	if err := ghApp.Stop(); err != nil {
+		return err
+	}
+	return InitGoogleHomeApp()
+}
+
+func StopGoogleHomeApp() error {
+	return ghApp.Stop()
+}
+
+func initApp(targetDevice string) (*application.Application, error) {
 	debug, disableCache := true, true
 	app := application.NewApplication(debug, disableCache)
-	entry, err := ChromecastDNSEntry()
+	entry, err := chromecastDNSEntry(targetDevice)
 	if err != nil {
 		return &application.Application{}, err
 	}
@@ -34,19 +69,11 @@ func ChromeApp() (*application.Application, error) {
 		return &application.Application{}, err
 	}
 
-	// Check app status does not work.
-	_, castMedia, _ := app.Status()
-	if castMedia != nil {
-		if err = app.Stop(); err != nil {
-			return &application.Application{}, err
-		}
-	}
 	return app, nil
 }
 
-func ChromecastDNSEntry() (dns.CastEntry, error) {
+func chromecastDNSEntry(targetDevice string) (dns.CastEntry, error) {
 	entries := dns.FindCastDNSEntries()
-	targetDevice := GoogleHome
 	if len(entries) == 0 {
 		return dns.CastEntry{}, ErrNoChromecastAvailable
 	}
@@ -59,20 +86,10 @@ func ChromecastDNSEntry() (dns.CastEntry, error) {
 	return dns.CastEntry{}, ErrNoChromecastAvailable
 }
 
-func Play(p string) error {
-
-	// path, content-type, transcode (.mp4)
-	app, err := ChromeApp()
-	if err != nil {
-		return err
-	}
-	return app.Load(p, "", false)
+func PlayMedia(p string) error {
+	return ghApp.Load(p, "", false)
 }
 
-func Stop() error {
-	app, err := ChromeApp()
-	if err != nil {
-		return err
-	}
-	return app.Stop()
+func StopMedia() error {
+	return ghApp.StopMedia()
 }
