@@ -87,6 +87,12 @@ func chromecastDNSEntry(targetDevice string) (dns.CastEntry, error) {
 }
 
 func PlayMedia(p string) error {
+	_, castMedia, _ := ghApp.Status()
+	if castMedia != nil {
+		if err := StopMedia(); err != nil {
+			return err
+		}
+	}
 	return ghApp.Load(p, "", false)
 }
 
