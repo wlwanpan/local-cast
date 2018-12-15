@@ -11,7 +11,7 @@ type Payload struct {
 
 func GetDevice(w http.ResponseWriter, r *http.Request) {
 	payload := &Payload{
-		Data: LoadDevices(),
+		Data: Load(),
 	}
 	data, err := json.Marshal(payload)
 	if err != nil {
@@ -22,8 +22,15 @@ func GetDevice(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// Err here -> once Stop cannot restart device ???
 func StopDevice(w http.ResponseWriter, r *http.Request) {
-	if err := ghApp.Stop(); err != nil {
+	deviceUUID := r.Header.Get("device-uuid")
+	device, err := GetByUUID(deviceUUID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := device.Stop(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

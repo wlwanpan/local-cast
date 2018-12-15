@@ -45,9 +45,9 @@ func main() {
 	log.Printf("Sucessfully cached: %d", media.CachedMediaCount())
 
 	log.Printf("Initializing Google Home")
-	if err := device.InitGoogleHomeApp(); err != nil {
-		log.Fatal(err)
-	}
+	// Not sure if cache on server start.
+	devices := device.Load()
+	device.Cache(devices)
 
 	s := &http.Server{
 		Handler:      initRoutes(),

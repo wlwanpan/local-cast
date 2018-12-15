@@ -44,9 +44,17 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	deviceUUID := r.Header.Get("device-uuid")
+	device, err := device.GetByUUID(deviceUUID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	device.Start()
+
 	// Fishy here but works better.
+	log.Printf("Casting %s", media.Name)
 	go func() {
-		log.Printf("Casting %s", media.Name)
 		if err = device.PlayMedia(media.GetPath()); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -57,6 +65,12 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 }
 
 func StopMedia(w http.ResponseWriter, r *http.Request) {
+	deviceUUID := r.Header.Get("device-uuid")
+	device, err := device.GetByUUID(deviceUUID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	if err := device.StopMedia(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
