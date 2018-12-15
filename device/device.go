@@ -1,4 +1,4 @@
-package chromecast
+package device
 
 import (
 	"errors"
@@ -27,34 +27,33 @@ var (
 	ghApp *application.Application
 )
 
-func InitChromecastApp() error {
-	var err error
-	ccApp, err = initApp(ChromecastName)
-	return err
+type Device struct {
+	Name      string `json:"name"`
+	UUID      string `json:"uuid"`
+	castEntry *dns.CastEntry
 }
 
-func RefreshChromecastApp() error {
-	if err := ccApp.Stop(); err != nil {
-		return err
+func NewDevice(entry *dns.CastEntry) *Device {
+	return &Device{
+		Name:      entry.GetName(),
+		UUID:      entry.GetUUID(),
+		castEntry: entry,
 	}
-	return InitChromecastApp()
+}
+
+func LoadDevices() []*Device {
+	entries := dns.FindCastDNSEntries()
+	devices := []*Device{}
+	for _, entry := range entries {
+		devices = append(devices, NewDevice(&entry))
+	}
+	return devices
 }
 
 func InitGoogleHomeApp() error {
 	var err error
 	ghApp, err = initApp(GoogleHomeName)
 	return err
-}
-
-func RefreshGoogleHomeApp() error {
-	if err := ghApp.Stop(); err != nil {
-		return err
-	}
-	return InitGoogleHomeApp()
-}
-
-func StopGoogleHomeApp() error {
-	return ghApp.Stop()
 }
 
 func initApp(targetDevice string) (*application.Application, error) {

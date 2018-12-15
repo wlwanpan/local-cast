@@ -22,10 +22,11 @@ var (
 )
 
 type Media struct {
-	ID        bson.ObjectId `bson:"_id"`
-	Name      string        `bson:"name"`
-	path      string        `bson:"path"`
-	mediaType mediaType     `bson:"type"`
+	ID        bson.ObjectId `json:"_id"`
+	Name      string        `json:"name"`
+	extension string
+	path      string
+	mediaType mediaType
 }
 
 func (m *Media) GetID() string {

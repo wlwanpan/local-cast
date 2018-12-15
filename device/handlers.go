@@ -1,15 +1,31 @@
 package device
 
 import (
-	"log"
+	"encoding/json"
 	"net/http"
-
-	"github.com/wlwanpan/localcast/chromecast"
 )
 
+type Payload struct {
+	Data []*Device `json:"data"`
+}
+
+func GetDevice(w http.ResponseWriter, r *http.Request) {
+	payload := &Payload{
+		Data: LoadDevices(),
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
 func StopDevice(w http.ResponseWriter, r *http.Request) {
-	if err := chromecast.StopGoogleHomeApp(); err != nil {
-		log.Println(err)
+	if err := ghApp.Stop(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 }

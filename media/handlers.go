@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/wlwanpan/localcast/chromecast"
+	"github.com/wlwanpan/localcast/device"
 )
 
 type Payload struct {
@@ -36,23 +36,30 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 	if mid == "" {
 		log.Println("No id param provided.")
 		http.Error(w, ErrMediaNotFound.Error(), http.StatusNotFound)
+		return
 	}
 	media, err := GetCachedMedia(mid)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	log.Printf("Casting %s", media.Name)
-	if err = chromecast.PlayMedia(media.GetPath()); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-	}
+	// Fishy here but works better.
+	go func() {
+		log.Printf("Casting %s", media.Name)
+		if err = device.PlayMedia(media.GetPath()); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	}()
 
 	w.WriteHeader(http.StatusOK)
 }
 
 func StopMedia(w http.ResponseWriter, r *http.Request) {
-	if err := chromecast.StopMedia(); err != nil {
+	if err := device.StopMedia(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 }

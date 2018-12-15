@@ -8,7 +8,6 @@ import (
 
 	"github.com/akamensky/argparse"
 	"github.com/gorilla/mux"
-	"github.com/wlwanpan/localcast/chromecast"
 	"github.com/wlwanpan/localcast/common"
 	"github.com/wlwanpan/localcast/device"
 	"github.com/wlwanpan/localcast/media"
@@ -46,7 +45,7 @@ func main() {
 	log.Printf("Sucessfully cached: %d", media.CachedMediaCount())
 
 	log.Printf("Initializing Google Home")
-	if err := chromecast.InitGoogleHomeApp(); err != nil {
+	if err := device.InitGoogleHomeApp(); err != nil {
 		log.Fatal(err)
 	}
 
