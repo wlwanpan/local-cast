@@ -34,13 +34,14 @@ func (m *Media) GetID() string {
 }
 
 func (m *Media) GetPath() string {
-	return m.path
+	return filepath.Join(m.path, m.Name) + m.extension
 }
 
-func NewMedia(name string, path string, mediaType mediaType) *Media {
+func NewMedia(name, extension, path string, mediaType mediaType) *Media {
 	return &Media{
 		ID:        bson.NewObjectId(),
 		Name:      name,
+		extension: extension,
 		path:      path,
 		mediaType: mediaType,
 	}
@@ -54,14 +55,17 @@ func GetCachedMedia(mid string) (*Media, error) {
 	return &Media{}, ErrMediaNotFound
 }
 
+// GetCachedAudio filters a list of audio media.
 func GetCachedAudio() []*Media {
 	return filterCachedMedia(AudioType)
 }
 
+// GetCachedVideo filters a list of video media.
 func GetCachedVideo() []*Media {
 	return filterCachedMedia(VideoType)
 }
 
+// LoadLocalFiles recursively reads paths and cache the media files.
 func LoadLocalFiles(p string) error {
 	files, err := ioutil.ReadDir(p)
 	if err != nil {
@@ -75,17 +79,19 @@ func LoadLocalFiles(p string) error {
 			continue
 		}
 		if file.IsDir() {
-			LoadLocalFiles(filePath)
+			return LoadLocalFiles(filePath)
 		}
 		fileType := readFileType(filePath)
 		if fileType != UnknownType {
-			newMedia := NewMedia(fileName, filePath, fileType)
+			name, extension := fileExtension(fileName)
+			newMedia := NewMedia(name, extension, p, fileType)
 			cachedMedia[newMedia.GetID()] = newMedia
 		}
 	}
 	return nil
 }
 
+// CachedMediaCount get the amount of media cached in mem.
 func CachedMediaCount() int {
 	return len(cachedMedia)
 }
@@ -102,6 +108,12 @@ func filterCachedMedia(mt mediaType) []*Media {
 		}
 	}
 	return m
+}
+
+// fileExtension extracts the file extension from the filename.
+func fileExtension(filename string) (string, string) {
+	i := strings.LastIndex(filename, ".")
+	return filename[:i], filename[i:]
 }
 
 func readFileType(f string) mediaType {
