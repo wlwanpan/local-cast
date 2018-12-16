@@ -14,13 +14,16 @@ type Payload struct {
 }
 
 func GetMedia(w http.ResponseWriter, r *http.Request) {
-	mt := r.URL.Query().Get("type")
-	var cachedMedias []*Media
-	if mt == "audio" {
-		cachedMedias = GetCachedAudio()
+	query := r.URL.Query()
+
+	var mt mediaType
+	if query.Get("type") == "audio" {
+		mt = AudioType
 	} else {
-		cachedMedias = GetCachedVideo()
+		mt = VideoType
 	}
+
+	cachedMedias := Filter(mt, query.Get("search"))
 	payload := &Payload{Data: cachedMedias}
 	parsedPayload, err := json.Marshal(payload)
 	if err != nil {
@@ -38,7 +41,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, ErrMediaNotFound.Error(), http.StatusNotFound)
 		return
 	}
-	media, err := GetCachedMedia(mid)
+	media, err := Find(mid)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

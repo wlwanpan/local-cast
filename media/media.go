@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/h2non/filetype"
+	"github.com/lithammer/fuzzysearch/fuzzy"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -37,7 +38,7 @@ func (m *Media) GetPath() string {
 	return filepath.Join(m.path, m.Name) + m.extension
 }
 
-func NewMedia(name, extension, path string, mediaType mediaType) *Media {
+func New(name, extension, path string, mediaType mediaType) *Media {
 	return &Media{
 		ID:        bson.NewObjectId(),
 		Name:      name,
@@ -47,7 +48,7 @@ func NewMedia(name, extension, path string, mediaType mediaType) *Media {
 	}
 }
 
-func GetCachedMedia(mid string) (*Media, error) {
+func Find(mid string) (*Media, error) {
 	m, ok := cachedMedia[mid]
 	if ok {
 		return m, nil
@@ -55,14 +56,22 @@ func GetCachedMedia(mid string) (*Media, error) {
 	return &Media{}, ErrMediaNotFound
 }
 
-// GetCachedAudio filters a list of audio media.
-func GetCachedAudio() []*Media {
-	return filterCachedMedia(AudioType)
-}
-
-// GetCachedVideo filters a list of video media.
-func GetCachedVideo() []*Media {
-	return filterCachedMedia(VideoType)
+func Filter(mt mediaType, search string) []*Media {
+	m := []*Media{}
+	for _, media := range cachedMedia {
+		if media.mediaType != mt {
+			continue
+		}
+		if search != "" {
+			s := strings.ToLower(search)
+			t := strings.ToLower(media.Name)
+			if !fuzzy.Match(s, t) {
+				continue
+			}
+		}
+		m = append(m, media)
+	}
+	return m
 }
 
 // LoadLocalFiles recursively reads paths and cache the media files.
@@ -84,7 +93,7 @@ func LoadLocalFiles(p string) error {
 		fileType := readFileType(filePath)
 		if fileType != UnknownType {
 			name, extension := fileExtension(fileName)
-			newMedia := NewMedia(name, extension, p, fileType)
+			newMedia := New(name, extension, p, fileType)
 			cachedMedia[newMedia.GetID()] = newMedia
 		}
 	}
@@ -98,16 +107,6 @@ func CachedMediaCount() int {
 
 func isHidden(filename string) bool {
 	return strings.HasPrefix(filename, ".")
-}
-
-func filterCachedMedia(mt mediaType) []*Media {
-	m := []*Media{}
-	for _, media := range cachedMedia {
-		if media.mediaType == mt {
-			m = append(m, media)
-		}
-	}
-	return m
 }
 
 // fileExtension extracts the file extension from the filename.
