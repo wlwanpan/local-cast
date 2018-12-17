@@ -62,6 +62,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		device.StopMedia()
 	}()
 
 	w.WriteHeader(http.StatusOK)
