@@ -48,7 +48,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	device := context.Get(r, device.DeviceCtx).(device.Device)
+	device := context.Get(r, device.DeviceCtx).(*device.Device)
 	device.Start()
 
 	// Fishy here but works better.
@@ -65,7 +65,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 }
 
 func StopMedia(w http.ResponseWriter, r *http.Request) {
-	device := context.Get(r, device.DeviceCtx).(device.Device)
+	device := context.Get(r, device.DeviceCtx).(*device.Device)
 	if err := device.StopMedia(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
