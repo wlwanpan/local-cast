@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/wlwanpan/localcast/device"
 )
@@ -47,12 +48,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	deviceUUID := r.Header.Get("device-uuid")
-	device, err := device.GetByUUID(deviceUUID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	device := context.Get(r, device.DeviceCtx).(device.Device)
 	device.Start()
 
 	// Fishy here but works better.
@@ -69,12 +65,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 }
 
 func StopMedia(w http.ResponseWriter, r *http.Request) {
-	deviceUUID := r.Header.Get("device-uuid")
-	device, err := device.GetByUUID(deviceUUID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	device := context.Get(r, device.DeviceCtx).(device.Device)
 	if err := device.StopMedia(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

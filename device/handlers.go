@@ -3,6 +3,8 @@ package device
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/context"
 )
 
 type Payload struct {
@@ -24,12 +26,7 @@ func GetDevice(w http.ResponseWriter, r *http.Request) {
 
 // Err here -> once Stop cannot restart device ???
 func StopDevice(w http.ResponseWriter, r *http.Request) {
-	deviceUUID := r.Header.Get("device-uuid")
-	device, err := GetByUUID(deviceUUID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	device := context.Get(r, DeviceCtx).(Device)
 	if err := device.Stop(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
