@@ -14,7 +14,7 @@ type Payload struct {
 	Data []*Media `json:"data"`
 }
 
-func GetMedia(w http.ResponseWriter, r *http.Request) {
+func GetHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	var mt mediaType
@@ -35,7 +35,7 @@ func GetMedia(w http.ResponseWriter, r *http.Request) {
 	w.Write(parsedPayload)
 }
 
-func CastMedia(w http.ResponseWriter, r *http.Request) {
+func CastHandler(w http.ResponseWriter, r *http.Request) {
 	mid := mux.Vars(r)["id"]
 	if mid == "" {
 		log.Println("No id param provided.")
@@ -49,14 +49,12 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 	}
 
 	device := context.Get(r, device.DeviceCtx).(*device.Device)
-	device.Start()
 
 	// Fishy here but works better.
 	log.Printf("Casting %s", media.Name)
 	go func() {
 		if err = device.PlayMedia(media.GetPath()); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
+			log.Println(err)
 		}
 		device.StopMedia()
 	}()
@@ -64,7 +62,7 @@ func CastMedia(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func StopMedia(w http.ResponseWriter, r *http.Request) {
+func StopHandler(w http.ResponseWriter, r *http.Request) {
 	device := context.Get(r, device.DeviceCtx).(*device.Device)
 	if err := device.StopMedia(); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

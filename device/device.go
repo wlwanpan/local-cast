@@ -30,11 +30,11 @@ func (d *Device) Start() error {
 }
 
 func (d *Device) Stop() error {
-	if err := d.app.Stop(); err != nil {
-		return err
-	}
-	// d.app.Close()
-	return nil
+	return d.app.Stop()
+}
+
+func (d *Device) Close() {
+	d.app.Close()
 }
 
 func (d *Device) StopMedia() error {
@@ -47,8 +47,14 @@ func (d *Device) PlayMedia(p string) error {
 		if err := d.StopMedia(); err != nil {
 			return err
 		}
+		return d.app.Load(p, "", false)
 	}
-	return d.app.Load(p, "", false)
+	d.Start()
+	defer d.Close()
+	if err := d.app.Load(p, "", false); err != nil {
+		return err
+	}
+	return nil
 }
 
 func GetByUUID(uuid string) (*Device, error) {
@@ -60,7 +66,18 @@ func GetByUUID(uuid string) (*Device, error) {
 	return &Device{}, ErrDeviceNotFound
 }
 
+func LoadAndCache() []*Device {
+	devices := Load()
+	Cache(devices)
+	return devices
+}
+
 func Cache(devices []*Device) {
+	if len(cachedDevices) != 0 {
+		for _, cachedDevice := range cachedDevices {
+			cachedDevice.Stop()
+		}
+	}
 	cachedDevices = devices
 }
 
