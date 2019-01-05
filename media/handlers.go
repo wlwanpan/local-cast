@@ -10,10 +10,6 @@ import (
 	"github.com/wlwanpan/localcast/device"
 )
 
-type Payload struct {
-	Data []*Media `json:"data"`
-}
-
 func GetHandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
@@ -25,7 +21,11 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cachedMedias := Filter(mt, query.Get("search"))
-	payload := &Payload{Data: cachedMedias}
+	payload := &struct {
+		Data []*Media `json:"data"`
+	}{
+		cachedMedias,
+	}
 	parsedPayload, err := json.Marshal(payload)
 	if err != nil {
 		log.Println(err)

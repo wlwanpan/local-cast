@@ -8,13 +8,11 @@ import (
 	"github.com/gorilla/context"
 )
 
-type Payload struct {
-	Data []*Device `json:"data"`
-}
-
 func GetHandler(w http.ResponseWriter, r *http.Request) {
-	payload := &Payload{
-		Data: Load(),
+	payload := &struct {
+		Data []*Device `json:"data"`
+	}{
+		Load(),
 	}
 	data, err := json.Marshal(payload)
 	if err != nil {

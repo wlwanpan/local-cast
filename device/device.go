@@ -1,6 +1,8 @@
 package device
 
 import (
+	"log"
+
 	gcapp "github.com/vishen/go-chromecast/application"
 	"github.com/vishen/go-chromecast/dns"
 )
@@ -44,13 +46,13 @@ func (d *Device) StopMedia() error {
 func (d *Device) PlayMedia(p string) error {
 	_, castMedia, _ := d.app.Status()
 	if castMedia != nil {
+		log.Println("Stopping current media ...")
 		if err := d.StopMedia(); err != nil {
 			return err
 		}
 		return d.app.Load(p, "", false)
 	}
 	d.Start()
-	defer d.Close()
 	if err := d.app.Load(p, "", false); err != nil {
 		return err
 	}

@@ -40,3 +40,15 @@ curl -X POST localhost:4040/media/5c0dbd824f3d37099f988541/cast
 ```bash
 curl -X POST localhost:4040/media/stop
 ```
+
+# Raspberry Pi Setup
+
+Support external harddrive (3gb)
+```
+sudo apt-get install ntfs-3g
+```
+
+Mount external harddrive
+```
+sudo mount -o uid=pi,gid=pi /dev/sda1 /mnt/media
+```
