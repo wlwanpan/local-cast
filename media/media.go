@@ -2,9 +2,12 @@ package media
 
 import (
 	"io/ioutil"
+	"log"
+	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/dhowden/tag"
 	"github.com/h2non/filetype"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 	"gopkg.in/mgo.v2/bson"
@@ -25,9 +28,17 @@ var (
 type Media struct {
 	ID        bson.ObjectId `json:"_id"`
 	Name      string        `json:"name"`
+	Metadata  *Metadata     `json:"metadata"`
 	extension string
 	path      string
 	mediaType mediaType
+}
+
+type Metadata struct {
+	Title     string `json:"title"`
+	Artist    string `json:"artist"`
+	Album     string `json:"album"`
+	Thumbnail string `json:"thumbnail"`
 }
 
 func (m *Media) GetID() string {
@@ -38,10 +49,11 @@ func (m *Media) GetPath() string {
 	return filepath.Join(m.path, m.Name) + m.extension
 }
 
-func New(name, extension, path string, mediaType mediaType) *Media {
+func New(name, extension, path string, mediaType mediaType, md *Metadata) *Media {
 	return &Media{
 		ID:        bson.NewObjectId(),
 		Name:      name,
+		Metadata:  md,
 		extension: extension,
 		path:      path,
 		mediaType: mediaType,
@@ -90,14 +102,49 @@ func LoadLocalFiles(p string) error {
 		if file.IsDir() {
 			return LoadLocalFiles(filePath)
 		}
-		fileType := readFileType(filePath)
+		fileType, md, err := getMediaType(filePath)
+		if err != nil {
+			log.Printf("Could not get metadata of %s", filePath)
+		}
 		if fileType != UnknownType {
 			name, extension := fileExtension(fileName)
-			newMedia := New(name, extension, p, fileType)
+			newMedia := New(name, extension, p, fileType, md)
 			cachedMedia[newMedia.GetID()] = newMedia
 		}
 	}
 	return nil
+}
+
+func getMediaType(p string) (mediaType, *Metadata, error) {
+	f, _ := os.Open(p)
+	head := make([]byte, 261)
+	f.Read(head)
+	if filetype.IsAudio(head) {
+		md, err := getAudioMetadata(f)
+		return AudioType, md, err
+	}
+	if filetype.IsVideo(head) {
+		return VideoType, &Metadata{}, nil
+	}
+	return UnknownType, &Metadata{}, nil
+}
+
+func getAudioMetadata(file *os.File) (*Metadata, error) {
+	m, err := tag.ReadFrom(file)
+	if err != nil {
+		return &Metadata{}, err
+	}
+	var thumbnail string
+	if pic := m.Picture(); pic != nil {
+		log.Println(pic)
+		thumbnail = pic.String()
+	}
+	return &Metadata{
+		Title:     m.Title(),
+		Artist:    m.Artist(),
+		Album:     m.Album(),
+		Thumbnail: thumbnail,
+	}, nil
 }
 
 // CachedMediaCount get the amount of media cached in mem.
@@ -113,15 +160,4 @@ func isHidden(filename string) bool {
 func fileExtension(filename string) (string, string) {
 	i := strings.LastIndex(filename, ".")
 	return filename[:i], filename[i:]
-}
-
-func readFileType(f string) mediaType {
-	buf, _ := ioutil.ReadFile(f)
-	if filetype.IsAudio(buf) {
-		return AudioType
-	}
-	if filetype.IsVideo(buf) {
-		return VideoType
-	}
-	return UnknownType
 }
