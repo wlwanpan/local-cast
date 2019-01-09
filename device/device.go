@@ -1,6 +1,7 @@
 package device
 
 import (
+	"errors"
 	"log"
 
 	gcapp "github.com/vishen/go-chromecast/application"
@@ -41,6 +42,19 @@ func (d *Device) Close() {
 
 func (d *Device) StopMedia() error {
 	return d.app.StopMedia()
+}
+
+func (d *Device) PauseMedia() error {
+	_, castMedia, _ := d.app.Status()
+	if castMedia == nil {
+		log.Println("No media currently playing")
+		return errors.New("no media playing")
+	}
+	return d.app.Pause()
+}
+
+func (d *Device) UnpauseMedia() error {
+	return d.app.Unpause()
 }
 
 func (d *Device) PlayMedia(p string) error {

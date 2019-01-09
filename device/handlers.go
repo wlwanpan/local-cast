@@ -23,7 +23,7 @@ func GetHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
-// Err here -> once Stop cannot restart device ???
+// StopHandler Err here -> once Stop cannot restart device ???
 func StopHandler(w http.ResponseWriter, r *http.Request) {
 	device := context.Get(r, DeviceCtx).(*Device)
 	if err := device.Stop(); err != nil {

@@ -70,3 +70,21 @@ func StopHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 }
+
+func PauseHandler(w http.ResponseWriter, r *http.Request) {
+	device := context.Get(r, device.DeviceCtx).(*device.Device)
+	if err := device.PauseMedia(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func UnpauseHandler(w http.ResponseWriter, r *http.Request) {
+	device := context.Get(r, device.DeviceCtx).(*device.Device)
+	if err := device.UnpauseMedia(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
